@@ -1,11 +1,14 @@
+﻿#include "GameProperties.hpp"
 #include "JamTemplate/Game.hpp"
-#include <SFML/Graphics.hpp>
-
-#include "GameProperties.hpp"
 #include "StateMenu.hpp"
+#include <SFML/Graphics.hpp>
+#include <windows.h>
 
 int main()
 {
+    HWND hWin = GetForegroundWindow();
+    ShowWindow(hWin, SW_HIDE);
+
     JamTemplate::Game::Sptr game = std::make_shared<JamTemplate::Game>();
     game->setUp(GP::WindowSizeX(), GP::WindowSizeY(), 2, GP::GameName());
 

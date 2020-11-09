@@ -17,8 +17,8 @@ public:
     static sf::Color PaletteFlashGreen() { return sf::Color { 51, 143, 63 }; };
     static sf::Color PaletteFlashRed() { return sf::Color { 143, 33, 33 }; };
 
-    static uint32_t WindowSizeX() { return 400; };
-    static uint32_t WindowSizeY() { return 400; };
+    static uint32_t WindowSizeX() { return 200; };
+    static uint32_t WindowSizeY() { return 420; };
 
     static std::string GameName() { return "AudioLooper"; };
 };

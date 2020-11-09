@@ -1,4 +1,4 @@
-#include "StateMenu.hpp"
+﻿#include "StateMenu.hpp"
 #include "GameProperties.hpp"
 #include "JamTemplate/Game.hpp"
 #include "JamTemplate/SmartShape.hpp"
@@ -36,7 +36,7 @@ void StateMenu::doCreate()
     m_text_Credits = std::make_shared<JamTemplate::SmartText>();
     m_text_Credits->loadFont("assets/font.ttf");
     m_text_Credits->setCharacterSize(12U);
-    m_text_Credits->setText("Created by @Laguna_999 for #kajam\nJanuary 2019");
+    m_text_Credits->setText("Created by @Laguna_999 for Bloodyorange");
     m_text_Credits->setPosition({ 10, 310 });
     m_text_Credits->setColor(GP::PaletteFontFront());
     m_text_Credits->SetTextAlign(JamTemplate::SmartText::TextAlign::LEFT);
@@ -56,10 +56,11 @@ void StateMenu::doCreate()
     unsigned button_width = 64;
     unsigned button_height = 32;
 
-    float button_posX_offset = 12 + 8;
-    float button_delta = (w - 2.0f * button_posX_offset) / 2.0f;
+    float button_posX_offset = 8;
     float button_posY1 = 12 + 8;
-    float button_posY2 = 12 + 8 + button_height + button_height * 0.2f;
+    float button_posY2 = 12 + 8 + (button_height + button_height * 0.2f) * 1;
+    float button_posY3 = 12 + 8 + (button_height + button_height * 0.2f) * 2;
+    float button_posY4 = 12 + 8 + (button_height + button_height * 0.2f) * 3;
 
     auto icon_play = std::make_shared<JamTemplate::SmartSprite>();
     icon_play->loadSprite("assets/play.png");
@@ -80,7 +81,7 @@ void StateMenu::doCreate()
     auto icon_fade = std::make_shared<JamTemplate::SmartSprite>();
     icon_fade->loadSprite("assets/fade.png");
     m_button_fade = std::make_shared<JamTemplate::Button>(sf::Vector2u { button_width, button_height });
-    m_button_fade->setPosition(sf::Vector2f { w / 4 - button_posX_offset + button_delta, button_posY1 });
+    m_button_fade->setPosition(sf::Vector2f { w / 4 - button_posX_offset, button_posY2 });
     m_button_fade->addCallback([this]() {
         auto tw = JamTemplate::TweenVolume<sf::Music>::create(m_music, 1.5f, 100.0f, 0.0f);
         add(tw);
@@ -92,7 +93,7 @@ void StateMenu::doCreate()
     icon_stop->loadSprite("assets/stop.png");
 
     m_button_stop = std::make_shared<JamTemplate::Button>(sf::Vector2u { button_width, button_height });
-    m_button_stop->setPosition(sf::Vector2f { w / 4 - button_posX_offset, button_posY2 });
+    m_button_stop->setPosition(sf::Vector2f { w / 4 - button_posX_offset, button_posY3 });
     m_button_stop->addCallback([this]() { m_music->stop(); });
     m_button_stop->setIcon(icon_stop);
     add(m_button_stop);
@@ -101,7 +102,7 @@ void StateMenu::doCreate()
     icon_skip->loadSprite("assets/skip.png");
 
     m_button_skip = std::make_shared<JamTemplate::Button>(sf::Vector2u { button_width, button_height });
-    m_button_skip->setPosition(sf::Vector2f { w / 4 - button_posX_offset + button_delta, button_posY2 });
+    m_button_skip->setPosition(sf::Vector2f { w / 4 - button_posX_offset, button_posY4 });
     m_button_skip->addCallback([this]() {
         m_music->setLoop(false);
         // avoid end of music at loop_end

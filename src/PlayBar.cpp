@@ -1,4 +1,4 @@
-#include "PlayBar.hpp"
+﻿#include "PlayBar.hpp"
 #include "JamTemplate/Game.hpp"
 
 PlayBar::PlayBar(std::int32_t duration, std::int32_t loop_start, std::int32_t loop_end, std::int32_t skip_to, std::vector<std::int32_t> const skip_from)
@@ -8,15 +8,15 @@ PlayBar::PlayBar(std::int32_t duration, std::int32_t loop_start, std::int32_t lo
     , m_skip { skip_to }
     , m_skip_from { skip_from }
     , m_position { 0 }
-    , m_width { 180 }
+    , m_width { 64 }
 {
 }
 
 void PlayBar::doCreate()
 {
     float height = 20;
-    float pos_offsetX = 12;
-    float pos_offsetY = 96;
+    float pos_offsetX = 16;
+    float pos_offsetY = 180;
 
     m_shape_full = sf::RectangleShape(sf::Vector2f { m_width, height });
     m_shape_full.setFillColor(sf::Color { 150, 150, 150 });
@@ -65,7 +65,7 @@ void PlayBar::doDraw() const
 
     for (auto const v : m_skip_from) {
         float relpos = static_cast<float>(v) / m_duration;
-        m_shape_skip_from.setPosition(sf::Vector2f(12 + relpos * m_width, m_shape_skip_from.getPosition().y));
+        m_shape_skip_from.setPosition(sf::Vector2f(16 + relpos * m_width, m_shape_skip_from.getPosition().y));
         getGame()->getRenderTarget()->draw(m_shape_skip_from);
     }
 }
