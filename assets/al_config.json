@@ -1,7 +1,7 @@
 {
 	"audio_file_path": "assets/music.ogg",
-	"loop_start": 29704,
-	"loop_end": 146573,
-	"skip_to_end": 146573,
-	"skip_from": [23472,146573]
+	"loop_start": 43333,
+	"loop_end": 107441,
+	"skip_to_end": 107447,
+	"skip_from": [43333,107441]
 }
