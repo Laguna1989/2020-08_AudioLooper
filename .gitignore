@@ -383,7 +383,15 @@ ASALocalRun/
 
 # End of https://www.gitignore.io/api/c++,cmake,visualstudio
 
+.vscode
 
 build
+build*
 
-ext/SFML-2.5.1_win
+ext/SFML-2.5.1
+ext/googletest/googletest-*
+ext/tileson-master/
+cmake-build-*
+
+doc/doxygen/html
+doc/doxygen/latex
