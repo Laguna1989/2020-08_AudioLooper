@@ -62,6 +62,7 @@ void StateMenu::onCreate()
     float button_posY4 = 12 + 8 + (button_height + button_height * 0.2f) * 3;
 
     auto icon_play = std::make_shared<jt::Sprite>("assets/play.png", textureManager());
+    icon_play->setOffset(jt::OffsetMode::CENTER);
 
     m_button_play
         = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
@@ -75,6 +76,7 @@ void StateMenu::onCreate()
     add(m_button_play);
 
     auto icon_fade = std::make_shared<jt::Sprite>("assets/fade.png", textureManager());
+    icon_fade->setOffset(jt::OffsetMode::CENTER);
     m_button_fade = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
     m_button_fade->setDrawable(icon_fade);
     m_button_fade->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY2 });
@@ -84,7 +86,7 @@ void StateMenu::onCreate()
     add(m_button_fade);
 
     auto icon_stop = std::make_shared<jt::Sprite>("assets/stop.png", textureManager());
-
+    icon_stop->setOffset(jt::OffsetMode::CENTER);
     m_button_stop = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
     m_button_stop->setDrawable(icon_stop);
     m_button_stop->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY3 });
@@ -94,13 +96,11 @@ void StateMenu::onCreate()
     add(m_button_stop);
 
     auto icon_skip = std::make_shared<jt::Sprite>("assets/skip.png", textureManager());
-
+    icon_skip->setOffset(jt::OffsetMode::CENTER);
     m_button_skip = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
     m_button_skip->setDrawable(icon_skip);
     m_button_skip->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY4 });
     m_button_skip->addCallback([this]() {
-        //        checkResult(eventInstance->setParameterByID(loopParameterId, 0.0f, false));
-
         float oldValue { 0.0f };
         checkResult(studioSystem->getParameterByID(loopParameterId, &oldValue));
         getGame()->logger().info("old param: " + std::to_string(oldValue));

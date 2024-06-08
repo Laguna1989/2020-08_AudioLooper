@@ -3,14 +3,16 @@
 #include <game_interface.hpp>
 #include <graphics/drawable_interface.hpp>
 #include <input/input_manager.hpp>
+#include <memory>
 #include <sprite.hpp>
+#include <string>
 #include <texture_manager_interface.hpp>
 #include <vector.hpp>
-#include <memory>
-#include <string>
 
 jt::Button::Button(jt::Vector2u const& size, jt::TextureManagerInterface& textureManager)
 {
+    m_size.x = static_cast<float>(size.x);
+    m_size.y = static_cast<float>(size.y);
     std::string buttonImageName = "#b#" + std::to_string(size.x) + "#" + std::to_string(size.y);
     m_background = std::make_shared<jt::Animation>();
     m_background->add(buttonImageName, "normal", size, { 0 }, 1, textureManager);
@@ -61,7 +63,8 @@ void jt::Button::setPosition(jt::Vector2f const& newPosition) noexcept
     m_pos = newPosition;
     m_background->setPosition(m_pos);
     if (m_drawable) {
-        m_drawable->setPosition(m_pos);
+        const auto centerPos = m_pos + m_size * 0.5f;
+        m_drawable->setPosition(centerPos);
     }
 }
 

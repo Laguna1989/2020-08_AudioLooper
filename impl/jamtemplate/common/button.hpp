@@ -1,10 +1,10 @@
 ﻿#ifndef JAMTEMPLATE_BUTTON_HPP
 #define JAMTEMPLATE_BUTTON_HPP
 
-#include <game_object.hpp>
-#include <vector.hpp>
 #include <functional>
+#include <game_object.hpp>
 #include <memory>
+#include <vector.hpp>
 #include <vector>
 
 namespace jt {
@@ -80,6 +80,7 @@ private:
     std::shared_ptr<jt::DrawableInterface> m_drawable { nullptr };
     std::vector<std::function<void(void)>> m_callbacks {};
     jt::Vector2f m_pos { 0.0f, 0.0f };
+    jt::Vector2f m_size { 0.0f, 0.0f };
 
     bool m_isVisible { true };
     bool m_isActive { true };

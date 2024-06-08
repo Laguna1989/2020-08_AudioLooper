@@ -3,8 +3,8 @@
 
 #include <color/color.hpp>
 #include <color/palette.hpp>
-#include <vector.hpp>
 #include <string>
+#include <vector.hpp>
 
 class GP {
 public:
@@ -23,7 +23,7 @@ public:
         return "Win the game\n[W,A,S,D] to move \n[Space] to jump\n[M/U] to mute/unmute audio";
     }
 
-    static jt::Vector2f GetWindowSize() { return jt::Vector2f { 1280, 960 }; }
+    static jt::Vector2f GetWindowSize() { return jt::Vector2f { 400, 800 }; }
 
     static float GetZoom() { return 4.0f; }
 
