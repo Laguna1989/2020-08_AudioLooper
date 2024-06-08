@@ -18,6 +18,8 @@ target_link_directories(GameLib PUBLIC ${FMOD_DIR}/api/studio/lib/x86_64)
 target_link_libraries(GameLib PUBLIC ${FMOD_DIR}/api/core/lib/x86_64/libfmod.so)
 target_link_libraries(GameLib PUBLIC ${FMOD_DIR}/api/studio/lib/x86_64/libfmodstudio.so)
 
+jt_use_fmod(GameLib)
+
 # compiler options
 if (MSVC)
     target_compile_options(GameLib PRIVATE "/W3")

@@ -13,6 +13,12 @@ function(jt_use_assets TGT)
     endif ()
 endfunction()
 
+function(jt_use_fmod TGT)
+    add_custom_command(TARGET ${TGT} PRE_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${FMOD_DIR}/api/core/lib/x86_64/libfmod.* ${CMAKE_CURRENT_BINARY_DIR}/)
+endfunction()
+
 function(target_link_libraries_system target)
     set(libs ${ARGN})
     foreach (lib ${libs})

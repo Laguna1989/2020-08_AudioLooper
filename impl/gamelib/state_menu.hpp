@@ -4,6 +4,8 @@
 #include "SFML/Audio.hpp"
 #include "button.hpp"
 #include "game_state.hpp"
+#include <fmod.hpp>
+#include <fmod_studio.hpp>
 
 namespace jt {
 class Text;
@@ -19,6 +21,8 @@ private:
     std::shared_ptr<jt::Button> m_button_skip;
 
     std::shared_ptr<jt::Shape> m_overlay;
+
+    FMOD::Studio::System* studioSystem;
 
     void onCreate() override;
     void onEnter() override;

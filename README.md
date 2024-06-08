@@ -1,14 +1,9 @@
 # AudioLooper
 
-## Setup
+## Setup on linux
 
-1. go to ext folder and extract zip (more will come for other versions/IDEs)
-2. create build directory build/vsstudio
-3. open command line (win+r "cmd")
-4. navigate to the just created build folder
-5. type cmake ../..
-   5.1 For visual studio getting stuck between x64 and x86, use cmake -A Win32 ../..
-
-For mac os you have to install cmake and sfml via homebrew: `brew install cmake sfml`
-If you use another package manager or want to install the dependencies yourself, you have to modify the paths
-in `CMakeLists.txt`.
+- download fmod for linux from their website
+- extract to `ext/fmod_linux`
+- run cmake
+- build
+- execute with `LD_LIBRARY_PATH=. ./AudioLooper` (linker does not look in local folder by default)

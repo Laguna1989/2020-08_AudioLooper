@@ -10,7 +10,12 @@
 
 void StateMenu::onCreate()
 {
-    float w = static_cast<float>(GP::GetScreenSize().x);
+
+    FMOD::Studio::System::create(&studioSystem);
+    studioSystem->initialize(2, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, nullptr);
+
+    float w
+        = static_cast<float>(GP::GetScreenSize().x);
     float h = static_cast<float>(GP::GetScreenSize().y);
 
     m_text_Credits = std::make_shared<jt::Text>();

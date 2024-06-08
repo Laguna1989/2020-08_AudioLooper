@@ -9,13 +9,13 @@ target_link_libraries(${PROJECTNAME} GameLib)
 target_include_directories(${PROJECTNAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 if (NOT USE_SFML)
-	if (NOT JT_ENABLE_WEB)
+    if (NOT JT_ENABLE_WEB)
         if (WIN32)
-		    target_link_libraries(${PROJECTNAME} SDL2::SDL2main)
+            target_link_libraries(${PROJECTNAME} SDL2::SDL2main)
             deploy_sdl_dlls()
-        endif()
-	endif()
-endif()
+        endif ()
+    endif ()
+endif ()
 
 if (MSVC)
     target_compile_options(${PROJECTNAME} PRIVATE "/W3")
@@ -27,3 +27,4 @@ endif ()
 
 
 jt_use_assets(${PROJECTNAME})
+jt_use_fmod(${PROJECTNAME})
