@@ -398,3 +398,4 @@ doc/doxygen/latex
 
 # Do not commit fmod code to public repo, they might get pissed
 ext/fmod_linux
+assets_ext/fmod_studio_project_euroclemens/euroclemens/Build
