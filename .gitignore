@@ -395,3 +395,6 @@ cmake-build-*
 
 doc/doxygen/html
 doc/doxygen/latex
+
+# Do not commit fmod code to public repo, they might get pissed
+ext/fmod_linux
