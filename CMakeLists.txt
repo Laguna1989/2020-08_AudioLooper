@@ -31,6 +31,19 @@ add_subdirectory(ext)
 
 setup_sfml()
 
+#####################################################
+# setup FMod
+#####################################################
+
+if (MSVC)
+    message(FATAL_ERROR "no fmod support on windows yet")
+else ()
+    set(FMOD_DIR "${CMAKE_SOURCE_DIR}/ext/fmod_linux")
+endif ()
+
+#####################################################
+# Add my own targets
+#####################################################
 add_subdirectory(impl)
 
 ## copy .clang-format to build directory
