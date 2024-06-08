@@ -10,6 +10,20 @@
 #include <fstream>
 #include <sstream>
 
+namespace {
+
+void checkResult(FMOD_RESULT result)
+{
+    if (result == FMOD_OK) {
+        return;
+    }
+
+    std::ostringstream oss;
+    oss << "FMod Failed: (" << result << ") - " << FMOD_ErrorString(result);
+    throw std::logic_error { oss.str() };
+}
+}
+
 void StateMenu::onCreate()
 {
 
@@ -55,7 +69,7 @@ void StateMenu::onCreate()
     m_button_play->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY1 });
     m_button_play->addCallback([this]() {
         getGame()->logger().info("start playing event instance", { "fmod" });
-        eventInstance->start();
+        checkResult(eventInstance->start());
     });
 
     add(m_button_play);
@@ -65,7 +79,7 @@ void StateMenu::onCreate()
     m_button_fade->setDrawable(icon_fade);
     m_button_fade->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY2 });
     m_button_fade->addCallback([this]() {
-        // TODO
+        checkResult(eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT));
     });
     add(m_button_fade);
 
@@ -75,7 +89,7 @@ void StateMenu::onCreate()
     m_button_stop->setDrawable(icon_stop);
     m_button_stop->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY3 });
     m_button_stop->addCallback([this]() {
-        eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+        checkResult(eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE));
     });
     add(m_button_stop);
 
@@ -85,7 +99,13 @@ void StateMenu::onCreate()
     m_button_skip->setDrawable(icon_skip);
     m_button_skip->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY4 });
     m_button_skip->addCallback([this]() {
-        // TODO
+        //        checkResult(eventInstance->setParameterByID(loopParameterId, 0.0f, false));
+
+        float oldValue { 0.0f };
+        checkResult(studioSystem->getParameterByID(loopParameterId, &oldValue));
+        getGame()->logger().info("old param: " + std::to_string(oldValue));
+
+        checkResult(studioSystem->setParameterByID(loopParameterId, 0.0f));
     });
 
     add(m_button_skip);
@@ -96,23 +116,13 @@ void StateMenu::onCreate()
     m_button_skip->update(0.0f);
 }
 
-void checkResult(FMOD_RESULT result)
-{
-    if (result == FMOD_OK) {
-        return;
-    }
-
-    std::ostringstream oss;
-    oss << "FMod Failed: (" << result << ") - " << FMOD_ErrorString(result);
-    throw std::logic_error { oss.str() };
-};
-
 void StateMenu::setupFMod()
 {
     FMOD_RESULT result;
     getGame()->logger().info("FMod initialization", { "fmod" });
     checkResult(FMOD::Studio::System::create(&studioSystem));
-    checkResult(studioSystem->initialize(2, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, nullptr));
+    checkResult(studioSystem->initialize(2, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
+
     getGame()->logger().info("FMod initialization done", { "fmod" });
 
     FMOD::Studio::Bank* bank;
@@ -121,7 +131,7 @@ void StateMenu::setupFMod()
     checkResult(bank->getEventCount(&eventCount));
     getGame()->logger().info("Loaded " + std::to_string(eventCount) + " events from 'Master.bank'", { "fmod" });
 
-    FMOD::Studio::EventDescription** eventList = new FMOD::Studio::EventDescription*[eventCount];
+    auto** eventList = new FMOD::Studio::EventDescription*[eventCount];
 
     checkResult(bank->getEventList(eventList, eventCount, &eventCount));
     if (eventCount != 1) {
@@ -131,18 +141,28 @@ void StateMenu::setupFMod()
 
     eventDescription = eventList[0];
 
+    // free memory
+    delete[] eventList;
+
     if (!eventDescription->isValid()) {
         getGame()->logger().error("invalid event description", { "fmod" });
     }
+
+    int parameterCount { 0 };
+    checkResult(eventDescription->getParameterDescriptionCount(&parameterCount));
+    getGame()->logger().info("Available Event Parameters: " + std::to_string(parameterCount), { "fmod" });
+
+    FMOD_STUDIO_PARAMETER_DESCRIPTION loopParameterDescription;
+    checkResult(eventDescription->getParameterDescriptionByIndex(0, &loopParameterDescription));
+    loopParameterId = loopParameterDescription.id;
 
     getGame()->logger().info("Create fmod event instance", { "fmod" });
     checkResult(eventDescription->createInstance(&eventInstance));
 
     if (!eventInstance || !eventInstance->isValid()) {
+
         getGame()->logger().error("invalid event instance", { "fmod" });
     }
-    
-    eventInstance->start();
 }
 
 void StateMenu::onEnter()

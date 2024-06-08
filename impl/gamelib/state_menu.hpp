@@ -27,6 +27,7 @@ private:
 
     FMOD::Studio::System* studioSystem;
     FMOD_GUID eventId;
+    FMOD_STUDIO_PARAMETER_ID loopParameterId;
     FMOD::Studio::EventDescription* eventDescription;
     FMOD::Studio::EventInstance* eventInstance;
 
