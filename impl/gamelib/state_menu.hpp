@@ -13,6 +13,9 @@ class Shape;
 }
 
 class StateMenu : public jt::GameState {
+public:
+    ~StateMenu();
+
 private:
     std::shared_ptr<jt::Text> m_text_Credits;
     std::shared_ptr<jt::Button> m_button_play;
@@ -23,11 +26,15 @@ private:
     std::shared_ptr<jt::Shape> m_overlay;
 
     FMOD::Studio::System* studioSystem;
+    FMOD_GUID eventId;
+    FMOD::Studio::EventDescription* eventDescription;
+    FMOD::Studio::EventInstance* eventInstance;
 
     void onCreate() override;
     void onEnter() override;
     void onUpdate(float elapsed) override;
     void onDraw() const override;
+    void setupFMod();
 };
 
 #endif

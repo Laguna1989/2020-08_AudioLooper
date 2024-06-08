@@ -1,4 +1,5 @@
 ﻿#include "state_menu.hpp"
+#include "fmod_errors.h"
 #include "game.hpp"
 #include "game_properties.hpp"
 #include "shape.hpp"
@@ -7,12 +8,12 @@
 #include "tweens/tween_alpha.hpp"
 #include <exception>
 #include <fstream>
+#include <sstream>
 
 void StateMenu::onCreate()
 {
 
-    FMOD::Studio::System::create(&studioSystem);
-    studioSystem->initialize(2, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, nullptr);
+    setupFMod();
 
     float w
         = static_cast<float>(GP::GetScreenSize().x);
@@ -50,40 +51,43 @@ void StateMenu::onCreate()
 
     m_button_play
         = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_button_play->setDrawable(icon_play);
     m_button_play->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY1 });
     m_button_play->addCallback([this]() {
-        // TODO
+        getGame()->logger().info("start playing event instance", { "fmod" });
+        eventInstance->start();
     });
-    m_button_play->setDrawable(icon_play);
+
     add(m_button_play);
 
     auto icon_fade = std::make_shared<jt::Sprite>("assets/fade.png", textureManager());
     m_button_fade = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_button_fade->setDrawable(icon_fade);
     m_button_fade->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY2 });
     m_button_fade->addCallback([this]() {
         // TODO
     });
-    m_button_fade->setDrawable(icon_fade);
     add(m_button_fade);
 
     auto icon_stop = std::make_shared<jt::Sprite>("assets/stop.png", textureManager());
 
     m_button_stop = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_button_stop->setDrawable(icon_stop);
     m_button_stop->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY3 });
     m_button_stop->addCallback([this]() {
-        // TODO
+        eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
     });
-    m_button_stop->setDrawable(icon_stop);
     add(m_button_stop);
 
     auto icon_skip = std::make_shared<jt::Sprite>("assets/skip.png", textureManager());
 
     m_button_skip = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_button_skip->setDrawable(icon_skip);
     m_button_skip->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY4 });
     m_button_skip->addCallback([this]() {
         // TODO
     });
-    m_button_skip->setDrawable(icon_skip);
+
     add(m_button_skip);
 
     m_button_play->update(0.0f);
@@ -92,13 +96,64 @@ void StateMenu::onCreate()
     m_button_skip->update(0.0f);
 }
 
+void checkResult(FMOD_RESULT result)
+{
+    if (result == FMOD_OK) {
+        return;
+    }
+
+    std::ostringstream oss;
+    oss << "FMod Failed: (" << result << ") - " << FMOD_ErrorString(result);
+    throw std::logic_error { oss.str() };
+};
+
+void StateMenu::setupFMod()
+{
+    FMOD_RESULT result;
+    getGame()->logger().info("FMod initialization", { "fmod" });
+    checkResult(FMOD::Studio::System::create(&studioSystem));
+    checkResult(studioSystem->initialize(2, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, nullptr));
+    getGame()->logger().info("FMod initialization done", { "fmod" });
+
+    FMOD::Studio::Bank* bank;
+    checkResult(studioSystem->loadBankFile("assets/Master.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &bank));
+    int eventCount { 0 };
+    checkResult(bank->getEventCount(&eventCount));
+    getGame()->logger().info("Loaded " + std::to_string(eventCount) + " events from 'Master.bank'", { "fmod" });
+
+    FMOD::Studio::EventDescription** eventList = new FMOD::Studio::EventDescription*[eventCount];
+
+    checkResult(bank->getEventList(eventList, eventCount, &eventCount));
+    if (eventCount != 1) {
+        throw std::invalid_argument { "unexpected number of events in Master Bank" };
+    }
+    checkResult(eventList[0]->getID(&eventId));
+
+    eventDescription = eventList[0];
+
+    if (!eventDescription->isValid()) {
+        getGame()->logger().error("invalid event description", { "fmod" });
+    }
+
+    getGame()->logger().info("Create fmod event instance", { "fmod" });
+    checkResult(eventDescription->createInstance(&eventInstance));
+
+    if (!eventInstance || !eventInstance->isValid()) {
+        getGame()->logger().error("invalid event instance", { "fmod" });
+    }
+    
+    eventInstance->start();
+}
+
 void StateMenu::onEnter()
 {
 }
 void StateMenu::onUpdate(float const elapsed)
 {
-    // TODO
+    if (studioSystem)
+        studioSystem->update();
 }
+
 void StateMenu::onDraw() const
 {
     m_text_Credits->draw(renderTarget());
@@ -108,4 +163,13 @@ void StateMenu::onDraw() const
     m_button_fade->draw();
     m_button_stop->draw();
     m_button_skip->draw();
+}
+
+StateMenu::~StateMenu()
+{
+    getGame()->logger().info("State Menu Destructor called");
+    if (studioSystem)
+        studioSystem->release();
+    studioSystem = nullptr;
+    getGame()->logger().info("FMod released", { "fmod" });
 }
