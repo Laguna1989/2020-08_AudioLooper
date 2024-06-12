@@ -60,6 +60,7 @@ void StateMenu::onCreate()
     float button_posY2 = 12 + 8 + (button_height + button_height * 0.2f) * 1;
     float button_posY3 = 12 + 8 + (button_height + button_height * 0.2f) * 2;
     float button_posY4 = 12 + 8 + (button_height + button_height * 0.2f) * 3;
+    float button_posY5 = 12 + 8 + (button_height + button_height * 0.2f) * 4;
 
     auto icon_play = std::make_shared<jt::Sprite>("assets/play.png", textureManager());
     icon_play->setOffset(jt::OffsetMode::CENTER);
@@ -70,7 +71,11 @@ void StateMenu::onCreate()
     m_button_play->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY1 });
     m_button_play->addCallback([this]() {
         getGame()->logger().info("start playing event instance", { "fmod" });
-        checkResult(eventInstance->start());
+        for (auto& kvp : m_musicTracks) {
+            kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
+        }
+
+        m_musicTracks[m_currentTrackName].eventInstance->start();
     });
 
     add(m_button_play);
@@ -81,7 +86,9 @@ void StateMenu::onCreate()
     m_button_fade->setDrawable(icon_fade);
     m_button_fade->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY2 });
     m_button_fade->addCallback([this]() {
-        checkResult(eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT));
+        for (auto& kvp : m_musicTracks) {
+            kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+        }
     });
     add(m_button_fade);
 
@@ -91,7 +98,9 @@ void StateMenu::onCreate()
     m_button_stop->setDrawable(icon_stop);
     m_button_stop->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY3 });
     m_button_stop->addCallback([this]() {
-        checkResult(eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE));
+        for (auto& kvp : m_musicTracks) {
+            kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
+        }
     });
     add(m_button_stop);
 
@@ -101,14 +110,28 @@ void StateMenu::onCreate()
     m_button_skip->setDrawable(icon_skip);
     m_button_skip->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY4 });
     m_button_skip->addCallback([this]() {
-        float oldValue { 0.0f };
-        checkResult(studioSystem->getParameterByID(loopParameterId, &oldValue));
-        getGame()->logger().info("old param: " + std::to_string(oldValue));
-
-        checkResult(studioSystem->setParameterByID(loopParameterId, 0.0f));
+        for (auto& kvp : m_musicTracks) {
+            checkResult(studioSystem->setParameterByID(kvp.second.loopParameterId, 0.0f));
+        }
     });
 
     add(m_button_skip);
+
+    int i = 0;
+    for (auto& kvp : m_musicTracks) {
+        kvp.second.button = std::make_shared<jt::Button>(jt::Vector2u { 20, 20 }, textureManager());
+        kvp.second.button->setPosition(jt::Vector2f { 4.0f + i * 24, button_posY5 });
+        kvp.second.button->addCallback([this, &kvp]() {
+            for (auto& kvpInner : m_musicTracks) {
+                kvpInner.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
+            }
+            
+            m_currentTrackName = kvp.first;
+        });
+        add(kvp.second.button);
+        kvp.second.button->update(0.0f);
+        i++;
+    }
 
     m_button_play->update(0.0f);
     m_button_fade->update(0.0f);
@@ -125,44 +148,49 @@ void StateMenu::setupFMod()
 
     getGame()->logger().info("FMod initialization done", { "fmod" });
 
-    FMOD::Studio::Bank* bank;
-    checkResult(studioSystem->loadBankFile("assets/Master.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &bank));
+    FMOD::Studio::Bank* stringBank;
+    checkResult(studioSystem->loadBankFile("assets/Master.strings.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &stringBank));
+
+    FMOD::Studio::Bank* masterBank;
+    checkResult(studioSystem->loadBankFile("assets/Master.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &masterBank));
     int eventCount { 0 };
-    checkResult(bank->getEventCount(&eventCount));
+
+    checkResult(masterBank->getEventCount(&eventCount));
     getGame()->logger().info("Loaded " + std::to_string(eventCount) + " events from 'Master.bank'", { "fmod" });
 
-    auto** eventList = new FMOD::Studio::EventDescription*[eventCount];
+    auto eventPaths = { "event:/original_clemens", "event:/euroclemens", "event:/spooky_clemens", "event:/christmasclemens" };
 
-    checkResult(bank->getEventList(eventList, eventCount, &eventCount));
-    if (eventCount != 1) {
-        throw std::invalid_argument { "unexpected number of events in Master Bank" };
+    for (const auto& eventPath : eventPaths) {
+
+        MusicTrack track {};
+
+        studioSystem->getEvent(eventPath, &track.eventDescription);
+
+        if (!track.eventDescription->isValid()) {
+            getGame()->logger().error("invalid event description", { "fmod" });
+        }
+
+        checkResult(track.eventDescription->getID(&track.guid));
+
+        int parameterCount { 0 };
+        checkResult(track.eventDescription->getParameterDescriptionCount(&parameterCount));
+        getGame()->logger().info("Available Event Parameters: " + std::to_string(parameterCount), { "fmod" });
+
+        FMOD_STUDIO_PARAMETER_DESCRIPTION loopParameterDescription;
+        checkResult(track.eventDescription->getParameterDescriptionByIndex(0, &loopParameterDescription));
+        track.loopParameterId = loopParameterDescription.id;
+
+        getGame()->logger().info("Create fmod event instance", { "fmod" });
+        checkResult(track.eventDescription->createInstance(&track.eventInstance));
+
+        if (!track.eventInstance || !track.eventInstance->isValid()) {
+            getGame()->logger().error("could not create event instance", { "fmod" });
+        }
+
+        m_musicTracks[eventPath] = track;
     }
-    checkResult(eventList[0]->getID(&eventId));
 
-    eventDescription = eventList[0];
-
-    // free memory
-    delete[] eventList;
-
-    if (!eventDescription->isValid()) {
-        getGame()->logger().error("invalid event description", { "fmod" });
-    }
-
-    int parameterCount { 0 };
-    checkResult(eventDescription->getParameterDescriptionCount(&parameterCount));
-    getGame()->logger().info("Available Event Parameters: " + std::to_string(parameterCount), { "fmod" });
-
-    FMOD_STUDIO_PARAMETER_DESCRIPTION loopParameterDescription;
-    checkResult(eventDescription->getParameterDescriptionByIndex(0, &loopParameterDescription));
-    loopParameterId = loopParameterDescription.id;
-
-    getGame()->logger().info("Create fmod event instance", { "fmod" });
-    checkResult(eventDescription->createInstance(&eventInstance));
-
-    if (!eventInstance || !eventInstance->isValid()) {
-
-        getGame()->logger().error("invalid event instance", { "fmod" });
-    }
+    m_currentTrackName = m_musicTracks.begin()->first;
 }
 
 void StateMenu::onEnter()
@@ -183,13 +211,16 @@ void StateMenu::onDraw() const
     m_button_fade->draw();
     m_button_stop->draw();
     m_button_skip->draw();
+
+    for (const auto& kvp : m_musicTracks) {
+        kvp.second.button->draw();
+    }
 }
 
 StateMenu::~StateMenu()
 {
-    getGame()->logger().info("State Menu Destructor called");
+    // Do not use logger here anymore
     if (studioSystem)
         studioSystem->release();
     studioSystem = nullptr;
-    getGame()->logger().info("FMod released", { "fmod" });
 }

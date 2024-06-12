@@ -12,6 +12,14 @@ class Text;
 class Shape;
 }
 
+struct MusicTrack {
+    FMOD_GUID guid;
+    FMOD::Studio::EventDescription* eventDescription;
+    FMOD::Studio::EventInstance* eventInstance;
+    FMOD_STUDIO_PARAMETER_ID loopParameterId;
+    std::shared_ptr<jt::Button> button;
+};
+
 class StateMenu : public jt::GameState {
 public:
     ~StateMenu();
@@ -26,10 +34,10 @@ private:
     std::shared_ptr<jt::Shape> m_overlay;
 
     FMOD::Studio::System* studioSystem;
-    FMOD_GUID eventId;
-    FMOD_STUDIO_PARAMETER_ID loopParameterId;
-    FMOD::Studio::EventDescription* eventDescription;
-    FMOD::Studio::EventInstance* eventInstance;
+
+    std::map<std::string, MusicTrack> m_musicTracks;
+
+    std::string m_currentTrackName;
 
     void onCreate() override;
     void onEnter() override;

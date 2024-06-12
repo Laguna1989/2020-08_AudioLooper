@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{41083dc4-f8f6-4ffa-b42a-24bf53aae0c0}">
+		<property name="assetPath">
+			<value>spooky_clemens.ogg</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>157.00102040816327</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{703a0ea3-5af5-44d7-8acc-8a750b087b6a}</destination>
+		</relationship>
+	</object>
+</objects>
