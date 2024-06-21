@@ -1,4 +1,5 @@
 ﻿#include "state_menu.hpp"
+#include "drawable_helpers.hpp"
 #include "fmod_errors.h"
 #include "game.hpp"
 #include "game_properties.hpp"
@@ -119,15 +120,20 @@ void StateMenu::onCreate()
 
     int i = 0;
     for (auto& kvp : m_musicTracks) {
+        auto image = std::make_shared<jt::Sprite>(kvp.second.buttonImagePath, textureManager());
+        image->setOffset(jt::OffsetMode::CENTER);
+
         kvp.second.button = std::make_shared<jt::Button>(jt::Vector2u { 20, 20 }, textureManager());
+        kvp.second.button->setDrawable(image);
         kvp.second.button->setPosition(jt::Vector2f { 4.0f + i * 24, button_posY5 });
         kvp.second.button->addCallback([this, &kvp]() {
             for (auto& kvpInner : m_musicTracks) {
                 kvpInner.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
             }
-            
+
             m_currentTrackName = kvp.first;
         });
+
         add(kvp.second.button);
         kvp.second.button->update(0.0f);
         i++;
@@ -158,13 +164,13 @@ void StateMenu::setupFMod()
     checkResult(masterBank->getEventCount(&eventCount));
     getGame()->logger().info("Loaded " + std::to_string(eventCount) + " events from 'Master.bank'", { "fmod" });
 
-    auto eventPaths = { "event:/original_clemens", "event:/euroclemens", "event:/spooky_clemens", "event:/christmasclemens" };
+    const std::vector<std::pair<std::string, std::string>> eventPaths = { { "event:/original_clemens", "assets/detective_clemens.png" }, { "event:/euroclemens", "assets/euro_clemens.png" }, { "event:/spooky_clemens", "assets/ghost_clemens.png" }, { "event:/christmasclemens", "assets/christmas_clemens.png" } };
 
-    for (const auto& eventPath : eventPaths) {
+    for (const auto& kvp : eventPaths) {
 
         MusicTrack track {};
 
-        studioSystem->getEvent(eventPath, &track.eventDescription);
+        studioSystem->getEvent(kvp.first.c_str(), &track.eventDescription);
 
         if (!track.eventDescription->isValid()) {
             getGame()->logger().error("invalid event description", { "fmod" });
@@ -187,7 +193,8 @@ void StateMenu::setupFMod()
             getGame()->logger().error("could not create event instance", { "fmod" });
         }
 
-        m_musicTracks[eventPath] = track;
+        track.buttonImagePath = kvp.second;
+        m_musicTracks[kvp.first] = track;
     }
 
     m_currentTrackName = m_musicTracks.begin()->first;

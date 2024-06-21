@@ -18,6 +18,7 @@ struct MusicTrack {
     FMOD::Studio::EventInstance* eventInstance;
     FMOD_STUDIO_PARAMETER_ID loopParameterId;
     std::shared_ptr<jt::Button> button;
+    std::string buttonImagePath;
 };
 
 class StateMenu : public jt::GameState {
