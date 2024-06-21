@@ -36,7 +36,7 @@ setup_sfml()
 #####################################################
 
 if (MSVC)
-    message(FATAL_ERROR "no fmod support on windows yet")
+
 else ()
     set(FMOD_DIR "${CMAKE_SOURCE_DIR}/ext/fmod_linux")
 endif ()

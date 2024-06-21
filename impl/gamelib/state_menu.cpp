@@ -147,7 +147,6 @@ void StateMenu::onCreate()
 
 void StateMenu::setupFMod()
 {
-    FMOD_RESULT result;
     getGame()->logger().info("FMod initialization", { "fmod" });
     checkResult(FMOD::Studio::System::create(&studioSystem));
     checkResult(studioSystem->initialize(2, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
