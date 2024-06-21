@@ -139,3 +139,8 @@ void jt::Button::setActive(bool isActive) { m_isActive = isActive; }
 std::shared_ptr<jt::DrawableInterface> jt::Button::getBackground() { return m_background; }
 
 std::shared_ptr<jt::DrawableInterface> jt::Button::getDrawable() const { return m_drawable; }
+
+void jt::Button::setColor(jt::Color const& color)
+{
+    m_background->setColor(color);
+}

@@ -1,6 +1,7 @@
 ﻿#ifndef JAMTEMPLATE_BUTTON_HPP
 #define JAMTEMPLATE_BUTTON_HPP
 
+#include <color/color.hpp>
 #include <functional>
 #include <game_object.hpp>
 #include <memory>
@@ -68,6 +69,8 @@ public:
     /// Set the position of the Button
     /// \param newPosition
     void setPosition(jt::Vector2f const& newPosition) noexcept;
+
+    void setColor(jt::Color const& color);
 
     /// Get the position of the Button
     jt::Vector2f getPosition(void) const noexcept;

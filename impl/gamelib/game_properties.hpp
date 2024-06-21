@@ -23,9 +23,9 @@ public:
         return "Win the game\n[W,A,S,D] to move \n[Space] to jump\n[M/U] to mute/unmute audio";
     }
 
-    static jt::Vector2f GetWindowSize() { return jt::Vector2f { 400, 800 }; }
+    static jt::Vector2f GetWindowSize() { return jt::Vector2f { 200, 400 }; }
 
-    static float GetZoom() { return 4.0f; }
+    static float GetZoom() { return 2.0f; }
 
     static jt::Vector2f GetScreenSize() { return GetWindowSize() * (1.0f / GetZoom()); }
 

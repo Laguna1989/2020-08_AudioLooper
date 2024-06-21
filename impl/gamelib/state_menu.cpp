@@ -207,6 +207,14 @@ void StateMenu::onUpdate(float const elapsed)
 {
     if (studioSystem)
         studioSystem->update();
+
+    for (auto const& kvp : m_musicTracks) {
+        if (kvp.first == m_currentTrackName) {
+            kvp.second.button->setColor(jt::colors::White);
+        } else {
+            kvp.second.button->setColor(jt::colors::Gray);
+        }
+    }
 }
 
 void StateMenu::onDraw() const
