@@ -25,33 +25,20 @@ void checkResult(FMOD_RESULT result)
 }
 }
 
+StateMenu::~StateMenu()
+{
+    // Do not use logger here anymore
+    if (m_studioSystem)
+        m_studioSystem->release();
+    m_studioSystem = nullptr;
+}
+
 void StateMenu::onCreate()
 {
-
     setupFMod();
 
-    float w
-        = static_cast<float>(GP::GetScreenSize().x);
-    float h = static_cast<float>(GP::GetScreenSize().y);
-
-    m_text_Credits = std::make_shared<jt::Text>();
-    m_text_Credits->loadFont("assets/font.ttf", 12u, renderTarget()->get(0));
-    m_text_Credits->setText("Created by @Laguna_999 for Bloodyorange");
-    m_text_Credits->setPosition({ 10, 310 });
-    m_text_Credits->setColor(GP::PaletteFontFront());
-    m_text_Credits->setTextAlign(jt::Text::TextAlign::LEFT);
-    m_text_Credits->update(0.0f);
-
-    m_overlay = std::make_shared<jt::Shape>();
-    m_overlay->makeRect(jt::Vector2f { w, h }, textureManager());
-    m_overlay->setColor(jt::Color { 0, 0, 0 });
-    m_overlay->update(0);
-
-    {
-        auto tw = jt::TweenAlpha::create(m_overlay, 0.5f, sf::Uint8 { 255 }, sf::Uint8 { 0 });
-        tw->setSkipTicks();
-        add(tw);
-    }
+    const float w = static_cast<float>(GP::GetScreenSize().x);
+    const float h = static_cast<float>(GP::GetScreenSize().y);
 
     unsigned button_width = 64;
     unsigned button_height = 32;
@@ -66,72 +53,56 @@ void StateMenu::onCreate()
     auto icon_play = std::make_shared<jt::Sprite>("assets/play.png", textureManager());
     icon_play->setOffset(jt::OffsetMode::CENTER);
 
-    m_button_play
+    m_buttonPlay
         = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
-    m_button_play->setDrawable(icon_play);
-    m_button_play->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY1 });
-    m_button_play->addCallback([this]() {
-        getGame()->logger().info("start playing event instance", { "fmod" });
-        for (auto& kvp : m_musicTracks) {
-            kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
-        }
-
-        m_musicTracks[m_currentTrackName].eventInstance->start();
+    m_buttonPlay->setDrawable(icon_play);
+    m_buttonPlay->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY1 });
+    m_buttonPlay->addCallback([this]() {
+        playCurrentTrack();
     });
 
-    add(m_button_play);
+    add(m_buttonPlay);
 
     auto icon_fade = std::make_shared<jt::Sprite>("assets/fade.png", textureManager());
     icon_fade->setOffset(jt::OffsetMode::CENTER);
-    m_button_fade = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
-    m_button_fade->setDrawable(icon_fade);
-    m_button_fade->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY2 });
-    m_button_fade->addCallback([this]() {
-        for (auto& kvp : m_musicTracks) {
-            kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
-        }
+    m_buttonFade = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_buttonFade->setDrawable(icon_fade);
+    m_buttonFade->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY2 });
+    m_buttonFade->addCallback([this]() {
+        fadeOutAllTracks();
     });
-    add(m_button_fade);
+    add(m_buttonFade);
 
     auto icon_stop = std::make_shared<jt::Sprite>("assets/stop.png", textureManager());
     icon_stop->setOffset(jt::OffsetMode::CENTER);
-    m_button_stop = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
-    m_button_stop->setDrawable(icon_stop);
-    m_button_stop->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY3 });
-    m_button_stop->addCallback([this]() {
-        for (auto& kvp : m_musicTracks) {
-            kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
-        }
+    m_buttonStop = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_buttonStop->setDrawable(icon_stop);
+    m_buttonStop->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY3 });
+    m_buttonStop->addCallback([this]() {
+        stopAllTracks();
     });
-    add(m_button_stop);
+    add(m_buttonStop);
 
     auto icon_skip = std::make_shared<jt::Sprite>("assets/skip.png", textureManager());
     icon_skip->setOffset(jt::OffsetMode::CENTER);
-    m_button_skip = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
-    m_button_skip->setDrawable(icon_skip);
-    m_button_skip->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY4 });
-    m_button_skip->addCallback([this]() {
-        for (auto& kvp : m_musicTracks) {
-            checkResult(studioSystem->setParameterByID(kvp.second.loopParameterId, 0.0f));
-        }
+    m_buttonSkip = std::make_shared<jt::Button>(jt::Vector2u { button_width, button_height }, textureManager());
+    m_buttonSkip->setDrawable(icon_skip);
+    m_buttonSkip->setPosition(jt::Vector2f { w / 4 - button_posX_offset, button_posY4 });
+    m_buttonSkip->addCallback([this]() {
+        setParameterForAllTracks(0.0f);
     });
 
-    add(m_button_skip);
+    add(m_buttonSkip);
 
     int i = 0;
     for (auto& kvp : m_musicTracks) {
+        kvp.second.button = std::make_shared<jt::Button>(jt::Vector2u { 20, 20 }, textureManager());
         auto image = std::make_shared<jt::Sprite>(kvp.second.buttonImagePath, textureManager());
         image->setOffset(jt::OffsetMode::CENTER);
-
-        kvp.second.button = std::make_shared<jt::Button>(jt::Vector2u { 20, 20 }, textureManager());
         kvp.second.button->setDrawable(image);
         kvp.second.button->setPosition(jt::Vector2f { 4.0f + i * 24, button_posY5 });
         kvp.second.button->addCallback([this, &kvp]() {
-            for (auto& kvpInner : m_musicTracks) {
-                kvpInner.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
-            }
-
-            m_currentTrackName = kvp.first;
+            switchToTrack(kvp.first);
         });
 
         add(kvp.second.button);
@@ -139,25 +110,38 @@ void StateMenu::onCreate()
         i++;
     }
 
-    m_button_play->update(0.0f);
-    m_button_fade->update(0.0f);
-    m_button_stop->update(0.0f);
-    m_button_skip->update(0.0f);
+    m_buttonPlay->update(0.0f);
+    m_buttonFade->update(0.0f);
+    m_buttonStop->update(0.0f);
+    m_buttonSkip->update(0.0f);
+}
+void StateMenu::fadeOutAllTracks()
+{
+    for (auto& kvp : m_musicTracks) {
+        kvp.second.eventInstance->stop(FMOD_STUDIO_STOP_ALLOWFADEOUT);
+    }
+}
+void StateMenu::playCurrentTrack()
+{
+    stopAllTracks();
+
+    getGame()->logger().info("start playing event instance: '" + m_currentTrackName + "'", { "fmod" });
+    m_musicTracks[m_currentTrackName].eventInstance->start();
 }
 
 void StateMenu::setupFMod()
 {
     getGame()->logger().info("FMod initialization", { "fmod" });
-    checkResult(FMOD::Studio::System::create(&studioSystem));
-    checkResult(studioSystem->initialize(2, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
+    checkResult(FMOD::Studio::System::create(&m_studioSystem));
+    checkResult(m_studioSystem->initialize(2, FMOD_STUDIO_INIT_LIVEUPDATE, FMOD_INIT_NORMAL, nullptr));
 
     getGame()->logger().info("FMod initialization done", { "fmod" });
 
     FMOD::Studio::Bank* stringBank;
-    checkResult(studioSystem->loadBankFile("assets/Master.strings.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &stringBank));
+    checkResult(m_studioSystem->loadBankFile("assets/Master.strings.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &stringBank));
 
     FMOD::Studio::Bank* masterBank;
-    checkResult(studioSystem->loadBankFile("assets/Master.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &masterBank));
+    checkResult(m_studioSystem->loadBankFile("assets/Master.bank", FMOD_STUDIO_LOAD_BANK_NORMAL, &masterBank));
     int eventCount { 0 };
 
     checkResult(masterBank->getEventCount(&eventCount));
@@ -169,7 +153,7 @@ void StateMenu::setupFMod()
 
         MusicTrack track {};
 
-        studioSystem->getEvent(kvp.first.c_str(), &track.eventDescription);
+        m_studioSystem->getEvent(kvp.first.c_str(), &track.eventDescription);
 
         if (!track.eventDescription->isValid()) {
             getGame()->logger().error("invalid event description", { "fmod" });
@@ -202,10 +186,11 @@ void StateMenu::setupFMod()
 void StateMenu::onEnter()
 {
 }
-void StateMenu::onUpdate(float const elapsed)
+
+void StateMenu::onUpdate(float const /*elapsed*/)
 {
-    if (studioSystem)
-        studioSystem->update();
+    if (m_studioSystem)
+        m_studioSystem->update();
 
     for (auto const& kvp : m_musicTracks) {
         if (kvp.first == m_currentTrackName) {
@@ -218,23 +203,42 @@ void StateMenu::onUpdate(float const elapsed)
 
 void StateMenu::onDraw() const
 {
-    m_text_Credits->draw(renderTarget());
-    m_overlay->draw(renderTarget());
-
-    m_button_play->draw();
-    m_button_fade->draw();
-    m_button_stop->draw();
-    m_button_skip->draw();
+    m_buttonPlay->draw();
+    m_buttonFade->draw();
+    m_buttonStop->draw();
+    m_buttonSkip->draw();
 
     for (const auto& kvp : m_musicTracks) {
         kvp.second.button->draw();
     }
 }
 
-StateMenu::~StateMenu()
+void StateMenu::stopAllTracks()
 {
-    // Do not use logger here anymore
-    if (studioSystem)
-        studioSystem->release();
-    studioSystem = nullptr;
+    for (auto& kvpInner : m_musicTracks) {
+        kvpInner.second.eventInstance->stop(FMOD_STUDIO_STOP_IMMEDIATE);
+    }
+}
+
+void StateMenu::resetParameterOnAllTracks()
+{
+    setParameterForAllTracks(1.0f);
+}
+
+void StateMenu::setParameterForAllTracks(float newParamValue)
+{
+    for (auto& kvp : m_musicTracks) {
+        checkResult(m_studioSystem->setParameterByID(kvp.second.loopParameterId, newParamValue));
+    }
+}
+
+void StateMenu::switchToTrack(std::string const& newTrackName)
+{
+    if (!m_musicTracks.contains(newTrackName))
+        throw std::invalid_argument { "can not switch to non existing track '" + newTrackName + "'" };
+
+    stopAllTracks();
+    resetParameterOnAllTracks();
+
+    m_currentTrackName = newTrackName;
 }
