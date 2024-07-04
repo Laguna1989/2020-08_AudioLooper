@@ -1,10 +1,11 @@
 ﻿#ifndef JAMTEMPLATE_BUTTON_HPP
 #define JAMTEMPLATE_BUTTON_HPP
 
-#include <game_object.hpp>
-#include <vector.hpp>
+#include <color/color.hpp>
 #include <functional>
+#include <game_object.hpp>
 #include <memory>
+#include <vector.hpp>
 #include <vector>
 
 namespace jt {
@@ -69,6 +70,8 @@ public:
     /// \param newPosition
     void setPosition(jt::Vector2f const& newPosition) noexcept;
 
+    void setColor(jt::Color const& color);
+
     /// Get the position of the Button
     jt::Vector2f getPosition(void) const noexcept;
 
@@ -80,6 +83,7 @@ private:
     std::shared_ptr<jt::DrawableInterface> m_drawable { nullptr };
     std::vector<std::function<void(void)>> m_callbacks {};
     jt::Vector2f m_pos { 0.0f, 0.0f };
+    jt::Vector2f m_size { 0.0f, 0.0f };
 
     bool m_isVisible { true };
     bool m_isActive { true };

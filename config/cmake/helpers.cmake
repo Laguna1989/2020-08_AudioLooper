@@ -13,6 +13,15 @@ function(jt_use_assets TGT)
     endif ()
 endfunction()
 
+function(jt_use_fmod TGT)
+    if (MSVC)
+    else ()
+        add_custom_command(TARGET ${TGT} PRE_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy
+                ${FMOD_DIR}/api/core/lib/x86_64/libfmod.* ${CMAKE_CURRENT_BINARY_DIR}/)
+    endif ()
+endfunction()
+
 function(target_link_libraries_system target)
     set(libs ${ARGN})
     foreach (lib ${libs})
@@ -21,19 +30,6 @@ function(target_link_libraries_system target)
         target_link_libraries(${target} ${lib})
     endforeach (lib)
 endfunction(target_link_libraries_system)
-
-function(deploy_sdl_dlls)
-    if (WIN32)
-        FETCHCONTENT_GETPROPERTIES(sdl2)
-        FETCHCONTENT_GETPROPERTIES(sdl2-image)
-        FETCHCONTENT_GETPROPERTIES(sdl2-ttf)
-        configure_file(${sdl2_SOURCE_DIR}/lib/x64/SDL2.dll ${CMAKE_CURRENT_BINARY_DIR}/ COPYONLY)
-        configure_file(${sdl2-image_SOURCE_DIR}/lib/x64/SDL2_image.dll ${CMAKE_CURRENT_BINARY_DIR}/ COPYONLY)
-        configure_file(${sdl2-ttf_SOURCE_DIR}/lib/x64/SDL2_ttf.dll ${CMAKE_CURRENT_BINARY_DIR}/ COPYONLY)
-    else ()
-        message(STATUS "No dlls to copy on non-windows system")
-    endif ()
-endfunction()
 
 
 function(mac_sdl_setup)
